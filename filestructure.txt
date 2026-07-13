@@ -1,0 +1,44 @@
+Find Your Job - File Structure & Architecture Overview
+
+This project is built using Next.js (App Router), React, TypeScript, Tailwind CSS, Prisma, and NextAuth.
+
+Below is the directory structure and a description of the key files and folders:
+
+Find_Your_Job/
+├── prisma/
+│   └── schema.prisma         # The database schema definition. Contains models for User, Resume, and JobSearchCache. Used by Prisma ORM to interact with PostgreSQL.
+├── public/                   # Static assets like images, icons, and fonts that are served directly by Next.js.
+├── scripts/                  # Standalone utility scripts (e.g., make-admin.ts for creating admin users).
+├── src/                      # The main source code directory.
+│   ├── app/                  # Next.js App Router directory. Defines all the pages and API routes.
+│   │   ├── api/              # Backend API routes (Serverless functions).
+│   │   │   ├── auth/         # NextAuth.js endpoints for authentication.
+│   │   │   ├── jobs/         # API to fetch jobs from JSearch, handle caching, and compute match scores.
+│   │   │   ├── resume/       # API to fetch and manage saved user resumes.
+│   │   │   └── upload/       # API to upload and parse PDF resumes using Mistral AI.
+│   │   ├── dashboard/        # The Dashboard page (`page.tsx`) where users view their parsed resume and job matches.
+│   │   ├── upload/           # The Upload page where users drag-and-drop their PDF resumes.
+│   │   ├── globals.css       # Global stylesheet containing Tailwind CSS directives and custom utility classes.
+│   │   ├── layout.tsx        # The root layout file wrapping the entire application.
+│   │   └── page.tsx          # The landing/home page of the application.
+│   │
+│   ├── components/           # Reusable React components.
+│   │   ├── dashboard/        # Components specific to the dashboard (FilterBar, JobList, DetailPanel, ResumeSummary).
+│   │   ├── layout/           # Structural components like Navbar, Footer, etc.
+│   │   └── ui/               # Generic, reusable UI components (Buttons, Inputs, Modals, Skeletons, Dropdowns).
+│   │
+│   ├── lib/                  # Core logic, helpers, and utilities.
+│   │   ├── auth.ts           # NextAuth configuration and session management.
+│   │   ├── jsearch.ts        # Service to communicate with the RapidAPI JSearch endpoints.
+│   │   ├── mistral.ts        # Service to communicate with Mistral AI for parsing resumes and extracting keywords.
+│   │   ├── prisma.ts         # Prisma client instantiation to prevent multiple instances in development.
+│   │   ├── scoring.ts        # The algorithm that compares parsed resume keywords against job descriptions to calculate match percentages.
+│   │   ├── types.ts          # Global TypeScript interfaces and type definitions used throughout the app.
+│   │   └── utils.ts          # Small helper functions (e.g., class merging with `clsx` and `tailwind-merge`).
+│   │
+│   └── middleware.ts         # Next.js middleware used to protect private routes (like /dashboard and /upload) ensuring only logged-in users can access them.
+│
+├── .env                      # Environment variables (API keys, database URLs).
+├── next.config.ts            # Next.js configuration and build settings.
+├── package.json              # NPM dependencies and project scripts.
+└── tailwind.config.ts        # Tailwind CSS configuration, theme customization, and plugin setups.

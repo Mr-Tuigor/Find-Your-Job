@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  name           String?
+  hashedPassword String   @map("hashed_password")
+  role           Role     @default(USER)
+  createdAt      DateTime @default(now()) @map("created_at")
+  resumes        Resume[]
+
+  @@map("users")
+}
+
+model Resume {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  originalText String   @map("original_text") @db.Text
+  piiMasked    Boolean  @default(false) @map("pii_masked")
+  parsedJson   Json     @map("parsed_json")
+  createdAt    DateTime @default(now()) @map("created_at")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("resumes")
+}
+
+model JobSearchCache {
+  id          String   @id @default(cuid())
+  queryString String   @unique @map("query_string")
+  jobResults  Json     @map("job_results")
+  expiresAt   DateTime @map("expires_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("job_search_cache")
+}

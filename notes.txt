@@ -1,0 +1,52 @@
+Find Your Job - Setup & Run Instructions
+
+## Prerequisites
+- Node.js (v18 or higher recommended)
+- PostgreSQL Database
+- API Keys: 
+  - Mistral AI (for resume parsing and job matching)
+  - JSearch API (from RapidAPI, for fetching job listings)
+
+## 1. Installation
+First, install all the project dependencies. From the root directory, run:
+```bash
+npm install
+```
+
+## 2. Environment Variables
+You need to set up your environment variables. 
+1. Copy the `.env.example` file to a new file named `.env`
+2. Open `.env` and fill in your keys and database URL. 
+   Required keys typically include:
+   - `DATABASE_URL`: Your PostgreSQL connection string.
+   - `MISTRAL_API_KEY`: Your Mistral AI API key.
+   - `JSEARCH_API_KEY`: Your RapidAPI JSearch key.
+   - `AUTH_SECRET` / `NEXTAUTH_SECRET`: A secure random string for user session encryption.
+
+## 3. Database Setup
+The project uses Prisma as an ORM. You need to push the database schema to your PostgreSQL database.
+Run the following command:
+```bash
+npx prisma db push
+```
+Alternatively, if you are using migrations:
+```bash
+npx prisma migrate dev
+```
+
+## 4. Running the Development Server
+Once the dependencies are installed, environment variables are set, and the database is configured, start the app:
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
+
+## 5. Building for Production
+To create an optimized production build:
+```bash
+npm run build
+```
+And to start the production server:
+```bash
+npm start
+```

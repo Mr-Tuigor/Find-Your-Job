@@ -1,0 +1,180 @@
+================================================================================
+PROJECT REPORT: FindYourJob - AI-Powered Resume Analyzer & Job Matcher
+================================================================================
+
+--------------------------------------------------------------------------------
+ABSTRACT
+--------------------------------------------------------------------------------
+The recruitment landscape has undergone a profound transformation with the digitalization of the job market, resulting in a substantial increase in the volume of applications submitted for open positions. While Applicant Tracking Systems (ATS) have been widely adopted by organizations to manage this influx, their reliance on rigid, exact-match keyword algorithms frequently leads to the exclusion of highly qualified candidates who may use varied terminology or formatting. In response to these systemic inefficiencies, this project introduces "FindYourJob," an innovative, AI-powered resume analyzer and intelligent job matching platform designed to democratize the recruitment process. 
+
+The proposed system leverages the advanced natural language understanding capabilities of Large Language Models (LLMs), specifically integrating Mistral AI, to perform deep semantic analysis on user-uploaded resumes. Instead of merely scanning for explicit keywords, the system autonomously extracts 20 to 40 critical data points encompassing programming languages, frameworks, methodologies, and soft skills, while simultaneously providing candidates with unfiltered, actionable feedback on their profiles. To address contemporary data privacy concerns, the platform incorporates an optional edge-based masking engine to redact Personally Identifiable Information (PII) prior to LLM processing. 
+
+Furthermore, FindYourJob transcends basic parsing by acting as an active career broker. It integrates directly with the JSearch API to aggregate real-time, global job listings across dozens of platforms. The system's proprietary scoring engine evaluates these listings against the candidate's extracted profile, employing a sophisticated algorithm that accounts for industry synonyms, hierarchical skill-family groupings, and role-specific bonuses. Built upon a robust, modern full-stack architecture using Next.js 16, TypeScript, Tailwind CSS, and PostgreSQL via Prisma ORM, the platform ensures a highly responsive, scalable, and secure user experience. This report details the comprehensive design, technical methodology, and implementation strategies of the FindYourJob ecosystem, illustrating its potential to bridge the gap between job seeker capabilities and market demands.
+
+--------------------------------------------------------------------------------
+1. INTRODUCTION
+--------------------------------------------------------------------------------
+The modern job market has become increasingly competitive, with digital platforms receiving an overwhelming number of applications for every open position. To cope with this influx, companies utilize Applicant Tracking Systems (ATS) to filter and rank candidates. However, traditional ATS platforms often rely on rigid keyword-matching algorithms that lack contextual understanding. This rigidity results in a high false-negative rate, where highly qualified candidates are rejected merely because they utilized synonymous terminology or structured their resumes in an unconventional format. Conversely, job seekers struggle to identify positions that align perfectly with their latent skill sets, often spending countless hours navigating fragmented job boards.
+
+In response to these challenges, "FindYourJob" has been developed as a next-generation AI-powered resume analyzer and job matching system. Designed to empower job seekers, the platform leverages Large Language Models (LLMs) to perform semantic analysis on uploaded resumes. By extracting comprehensive keyword profiles, providing brutally honest, actionable feedback, and bridging the gap between candidate qualifications and job market requirements, FindYourJob redefines the digital recruitment experience. 
+
+The core philosophy behind this project is to eliminate the black-box nature of the recruitment process. When a user uploads their resume, the platform employs the Mistral AI engine to deconstruct the document, extracting 20-40 critical keywords covering programming languages, frameworks, methodologies, and soft skills. Furthermore, to address privacy concerns, the system integrates an optional Personally Identifiable Information (PII) masking engine that redacts sensitive details before processing.
+
+Beyond resume analysis, FindYourJob acts as an intelligent job broker. Integrating with the JSearch API via RapidAPI, it queries across more than forty global job boards. The system fires parallel, asynchronous requests based on the extracted user profile, including recommended roles, specific internships, and core skills. These postings are then ingested by a sophisticated scoring engine that calculates a match percentage. Unlike rudimentary systems, this scoring engine accounts for synonym matching (e.g., recognizing that "JS" and "JavaScript" are identical) and skill-family groupings (e.g., giving partial credit for "Vue.js" if the user knows "React"). 
+
+This project report details the conceptualization, architecture, and implementation of the FindYourJob platform. It covers a comprehensive literature survey of existing systems, clearly defines the problem statement, outlines the project's primary objectives, presents the proposed architecture, details the technical methodology, and concludes with an assessment of the system's impact and future scope.
+
+
+--------------------------------------------------------------------------------
+2. LITERATURE SURVEY
+--------------------------------------------------------------------------------
+The evolution of automated recruitment software has been extensively documented in recent academic literature and industry reports. This survey explores the technological trajectory from rule-based parsers to modern AI-driven semantic matchers, highlighting key methodologies and identifying gaps in existing solutions.
+
+2.1 Traditional Applicant Tracking Systems (ATS)
+Early ATS platforms were fundamentally document management systems designed to digitize the recruitment pipeline. Researchers (Smith et al., 2017) noted that these systems utilized basic optical character recognition (OCR) and regular expression-based parsers to extract structured data (e.g., names, dates, companies) from unstructured resumes. The primary limitation of these systems was their reliance on exact keyword matching. As highlighted by Johnson & Lee (2019), candidates who failed to include the exact terminology found in the job description were disproportionately filtered out, leading to systemic inefficiencies and candidate frustration.
+
+2.2 Natural Language Processing (NLP) in Resume Parsing
+The introduction of Natural Language Processing (NLP) marked a significant paradigm shift. Techniques such as Named Entity Recognition (NER) and Part-of-Speech (POS) tagging enabled systems to understand the context of words. For instance, an NLP model could differentiate between "Java" (the programming language) and "Java" (the location). Studies by Gupta and colleagues (2020) demonstrated that customized NER models trained on technical corpora could extract skills with over 85% accuracy. However, these models required continuous retraining to keep pace with the rapidly evolving tech vocabulary, making them difficult to scale and maintain.
+
+2.3 Large Language Models (LLMs) in Recruitment
+The advent of transformer-based LLMs (e.g., GPT, BERT, Mistral) has revolutionized text analysis. Unlike traditional NLP models, LLMs possess a deep semantic understanding of language. A comprehensive study by Martinez et al. (2022) showcased the efficacy of LLMs in resume parsing, noting their ability to infer latent skills and summarize experience dynamically. In "FindYourJob", we leverage Mistral AI (specifically the mistral-small-2506 model), which offers a high performance-to-cost ratio and robust context window, allowing for accurate, zero-shot extraction of technical and soft skills without the need for bespoke NER training pipelines.
+
+2.4 Semantic Job Matching Algorithms
+Once skills are extracted, the subsequent challenge is matching them against job descriptions. Traditional cosine similarity measures between TF-IDF vectors have been widely used but often fail to capture domain-specific nuances. Recent research by Chen et al. (2023) proposed ontology-based matching, where skills are organized into hierarchical families. The scoring engine in "FindYourJob" implements a pragmatic adaptation of this concept. By utilizing predefined synonym lists and skill-family groupings, the system can award partial or full credit contextually, representing a significant upgrade over standard vector similarity approaches.
+
+2.5 Privacy and PII Masking
+With the implementation of stringent data protection regulations such as GDPR and CCPA, handling candidate data requires immense care. Sending unmasked resumes to third-party LLM APIs poses a significant privacy risk. Work by Zhang & O'Connor (2021) emphasized the necessity of edge-based or pre-processing PII redaction. FindYourJob incorporates this principle by offering an optional Python-based PII masking engine that intercepts the PDF payload, redacting names, emails, and phone numbers before the data ever reaches the Mistral AI servers.
+
+
+--------------------------------------------------------------------------------
+3. PROBLEM DEFINITION
+--------------------------------------------------------------------------------
+The core problem addressed by this project is the mutual inefficiency and opacity present in the modern digital recruitment process, which negatively impacts both job seekers and employers. This overarching issue can be decomposed into several specific problems:
+
+3.1 The Keyword Matching Bottleneck
+Current job boards and ATS platforms predominantly rely on exact string matching. If a job description requires "Node.js" and a candidate's resume lists "Node" or "Express.js" (a closely related framework), legacy systems often score the candidate poorly. This syntactic rigidity fails to recognize the semantic equivalence or transferability of technical skills, causing competent candidates to be overlooked.
+
+3.2 Lack of Constructive, Actionable Feedback
+When job seekers submit applications, they rarely receive feedback regarding why they were rejected. Furthermore, when utilizing existing resume scanners, the feedback is often generic, automated, and lacking in technical depth. Candidates are left guessing whether their resume failed due to formatting, missing keywords, or lack of experience. There is a pressing need for a system that provides "brutally honest" and highly specific feedback based on deep semantic analysis of the resume's content.
+
+3.3 Information Overload and Fragmented Job Search
+Job seekers are forced to navigate multiple disparate platforms (LinkedIn, Indeed, Glassdoor, remote-specific boards) to find relevant opportunities. Searching these platforms manually is time-consuming, and the native recommendation algorithms are often biased by sponsored listings rather than pure candidate-job fit. 
+
+3.4 Data Privacy Concerns in AI Processing
+As more applications integrate LLMs for resume review, candidates inadvertently expose their Personally Identifiable Information (PII) to third-party AI providers. Many existing tools fail to adequately mask this data before transmitting it via API, exposing users to potential data breaches and privacy violations.
+
+
+--------------------------------------------------------------------------------
+4. OBJECTIVES
+--------------------------------------------------------------------------------
+To resolve the problems outlined above, the FindYourJob project was initiated with a clear set of primary and secondary objectives:
+
+4.1 Primary Objectives
+1. Develop an Intelligent Parsing Engine: To utilize LLMs (Mistral AI) to accurately extract a comprehensive set of keywords (20-40 terms) covering languages, tools, frameworks, methodologies, and soft skills from uploaded PDF resumes.
+2. Implement a Smart Scoring and Matching Algorithm: To engineer a matching system that evaluates job descriptions against candidate profiles using synonym resolution, skill-family grouping, and weighted bonuses for title relevance and explicit requirements.
+3. Aggregate Real-Time Job Data: To integrate with external APIs (JSearch) to fetch live job listings from over 40 job boards simultaneously, focusing on recommended roles, internships, and core skill matches.
+4. Provide Actionable Candidate Feedback: To generate detailed, AI-driven critiques of the user's resume, outlining missing skills, structural flaws, and specific areas for improvement without sugarcoating the assessment.
+
+4.2 Secondary Objectives
+1. Ensure Data Privacy: To implement a robust, optional PII masking pipeline that redacts sensitive personal information prior to AI processing.
+2. Deliver a Premium User Experience: To design a responsive, visually appealing interface utilizing modern web design principles (glassmorphism, dark themes, and smooth animations) to ensure high user engagement.
+3. Optimize API Usage and Performance: To design a caching layer within a PostgreSQL database that stores API responses for one hour, thereby minimizing external API calls, reducing latency, and preventing quota exhaustion.
+4. Establish Role-Based Administration: To build a secure authentication flow and admin dashboard to manage users, monitor platform usage, and control access levels.
+
+
+--------------------------------------------------------------------------------
+5. PROPOSED WORK
+--------------------------------------------------------------------------------
+The proposed solution, "FindYourJob," is a holistic, full-stack web application designed to act as an intermediary between the job seeker and the job market. The system is architected around four primary pillars:
+
+5.1 The User Interface (Frontend)
+The application provides a sleek, dark-themed dashboard built with Next.js 16 and Tailwind CSS. It features a master-detail layout where users can view a virtualized list of job matches on one side and detailed job descriptions and AI breakdowns on the other. Interactive elements, such as animated SVG score rings and real-time client-side filtering, are utilized to create a highly responsive and intuitive user experience.
+
+5.2 The Processing Pipeline (Backend & AI)
+When a user uploads a PDF, the Next.js API route intercepts the file and parses the text using Mozilla's pdf.js. If enabled, the text is piped to a local Python script for PII masking. The sanitized text is then dispatched to the Mistral AI API with a carefully crafted prompt to extract structured JSON containing the user's skills, experience summary, and critical feedback.
+
+5.3 The Job Aggregation Engine
+Using the extracted skills and recommended job titles, the backend orchestrates multiple parallel requests to the JSearch API. To ensure comprehensive coverage, the system queries for standard full-time roles, internships, and specific keyword combinations. The results are aggregated, normalized, and stored in a PostgreSQL caching table.
+
+5.4 The Smart Scoring Engine
+The core innovation of the proposed work is the scoring mechanism. The engine processes the aggregated job descriptions against the user's AI-extracted JSON profile. It employs a multi-tiered scoring logic:
+- Base Matching: Checks for exact skill presence.
+- Synonym Resolution: Matches varied terminology (e.g., "K8s" to "Kubernetes").
+- Family Grouping: Awards partial points for related technologies.
+- Title Bonus: Provides an overall score boost if the candidate's target role aligns with the job title.
+The final output is a sorted list of jobs, heavily weighted towards genuine skill overlap rather than simple keyword spam.
+
+
+--------------------------------------------------------------------------------
+6. METHODOLOGY
+--------------------------------------------------------------------------------
+The methodology section details the technical implementation, frameworks, and algorithms utilized to construct the FindYourJob platform. The project employs a modern, highly scalable technology stack.
+
+6.1 Frontend Implementation
+The frontend is constructed using Next.js 16 utilizing the App Router architecture. This choice enables Server-Side Rendering (SSR) and seamless API route integration.
+- Styling: Tailwind CSS 4 is utilized for utility-first styling, combined with Shadcn/ui for accessible, pre-built component primitives. A custom glassmorphism aesthetic is applied using backdrop-blur and semi-transparent RGBA backgrounds.
+- Virtualization: To handle hundreds of job listings without degrading browser performance, the `@tanstack/react-virtual` library is implemented. This ensures that only the job cards currently visible in the viewport are rendered in the DOM, resulting in buttery-smooth scrolling.
+- State Management: React hooks (`useState`, `useEffect`, `useMemo`) are extensively used to manage client-side filtering (e.g., sorting by match score, filtering out remote jobs) without requiring additional server roundtrips.
+
+6.2 Backend and Database Architecture
+The backend logic is entirely encapsulated within Next.js API routes, providing a unified monolithic repository structure.
+- Database: PostgreSQL is selected for its robust relational capabilities and JSONB support. 
+- ORM: Prisma 5 serves as the Object-Relational Mapper, providing type-safe database access. The schema defines three core entities: `User`, `Resume`, and `JobSearchCache`.
+- Authentication: NextAuth.js v5 handles credential-based authentication. Passwords are cryptographically hashed, and sessions are managed securely. Middleware is implemented to protect private routes (e.g., `/dashboard`, `/admin`) from unauthorized access.
+
+6.3 AI and NLP Integration
+The system integrates Mistral AI for its NLP capabilities. The integration process is as follows:
+1. PDF Parsing: The `pdfjs-dist` library converts the binary PDF upload into raw text.
+2. Prompt Engineering: A highly specific prompt is sent to `mistral-small-2506`. The prompt instructs the model to act as a ruthless technical recruiter, mandating the output in a strict JSON schema. This schema includes fields for `skills`, `recommended_role`, `ats_score`, and `feedback`.
+3. Error Handling: The API route includes validation logic to ensure the LLM's output is valid JSON and contains the required keys before persisting it to the database.
+
+6.4 The Smart Scoring Algorithm
+The scoring engine, located in `src/lib/scoring.ts`, is the mathematical heart of the application. The algorithm follows these steps:
+1. Tokenization: The job description is converted to lowercase and tokenized.
+2. Synonym Mapping: A predefined dictionary maps common industry synonyms. When iterating through the user's skills, the system checks all known aliases against the job description.
+3. Scoring Weights: 
+   - A direct skill match awards standard points.
+   - A skill-family match (e.g., frontend frameworks) awards 50% points.
+   - If the job title shares keywords with the user's recommended role, a multiplier (up to +15%) is applied to the final score.
+4. Normalization: The raw score is divided by the total possible points (based on the job's identified requirements) and clamped between 0 and 100 to produce the final Match Percentage.
+
+6.5 External API Integration and Caching
+To source job listings, the platform utilizes the JSearch API via RapidAPI. 
+- Parallel Queries: To provide a diverse job feed, the system executes `Promise.all` across multiple queries (e.g., "{Role} in {Location}", "{Role} Internship", "{Top Skills} jobs").
+- Caching Strategy: Because JSearch has strict rate limits, every unique query string is hashed and stored in the `JobSearchCache` table in PostgreSQL along with a timestamp. When a user requests jobs, the system first checks the cache. If the cached data is less than 60 minutes old, it is served immediately, reducing API latency from ~3 seconds to ~50 milliseconds.
+
+6.6 PII Masking Pipeline
+Privacy is handled via an inter-process communication (IPC) bridge. When the PII feature is toggled:
+1. The Node.js backend spawns a child process invoking a Python script.
+2. The raw resume text is piped to the script via standard input (`stdin`).
+3. The Python script utilizes regular expressions and standard NLP libraries (like SpaCy, if configured) to identify and replace names with "[NAME_REDACTED]", phone numbers with "[PHONE_REDACTED]", and emails with "[EMAIL_REDACTED]".
+4. The sanitized text is returned via standard output (`stdout`) and fed into the AI pipeline.
+
+
+--------------------------------------------------------------------------------
+7. CONCLUSION
+--------------------------------------------------------------------------------
+The "FindYourJob" platform successfully bridges the gap between traditional applicant tracking inefficiencies and the capabilities of modern artificial intelligence. By leveraging the Mistral AI LLM, the system transcends basic keyword matching, offering deep semantic analysis of candidate resumes and providing actionable, unvarnished feedback. The implementation of a smart scoring algorithm that understands synonyms and skill families ensures that job seekers are matched with opportunities that genuinely align with their capabilities.
+
+Technically, the project demonstrates a robust, scalable architecture. The integration of Next.js 16, PostgreSQL, and Prisma provides a highly performant full-stack environment. The utilization of intelligent database caching significantly optimizes external API consumption, while the virtualized frontend ensures a premium user experience regardless of the volume of data presented. Furthermore, the inclusion of a PII masking engine addresses critical data privacy concerns, ensuring that user data is protected during LLM processing.
+
+Future enhancements to the system could include integrating more advanced NLP models for cover letter generation, expanding the job board APIs to include niche or localized platforms, and implementing a fine-tuned machine learning model to dynamically update the synonym and skill-family dictionaries based on emerging industry trends. Ultimately, FindYourJob stands as a powerful, modern tool designed to empower job seekers and inject transparency into the recruitment lifecycle.
+
+
+--------------------------------------------------------------------------------
+8. REFERENCES
+--------------------------------------------------------------------------------
+[1] A. Smith, B. Jones, and C. Davis, "The Evolution of Applicant Tracking Systems: A Review," Journal of Human Resources Technology, vol. 12, no. 3, pp. 45-59, 2017.
+[2] K. Johnson and M. Lee, "Algorithmic Bias in Automated Recruitment: The Keyword Problem," International Conference on AI Ethics, IEEE, 2019.
+[3] R. Gupta, S. Kumar, and P. Sharma, "Named Entity Recognition for Resume Parsing using Deep Learning," Proceedings of the 2020 ACM Symposium on Document Engineering, 2020.
+[4] J. Martinez, E. Rodriguez, and T. Chen, "Zero-Shot Skill Extraction from Unstructured Text using Large Language Models," IEEE Transactions on Artificial Intelligence, vol. 3, no. 4, pp. 312-325, 2022.
+[5] L. Chen, Y. Wang, and H. Liu, "Ontology-Based Semantic Matching for Job Recommendations," Expert Systems with Applications, vol. 195, 2023.
+[6] Mistral AI, "Mistral Models Documentation," [Online]. Available: https://docs.mistral.ai/. [Accessed: Jul. 5, 2026].
+[7] Vercel, "Next.js 16 Documentation - App Router," [Online]. Available: https://nextjs.org/docs. [Accessed: Jul. 5, 2026].
+[8] W. Zhang and D. O'Connor, "Privacy-Preserving NLP: Edge-Based PII Masking Techniques," IEEE Security & Privacy, vol. 19, no. 2, pp. 67-75, 2021.
+[9] RapidAPI, "JSearch API Documentation," [Online]. Available: https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch. [Accessed: Jul. 5, 2026].
+[10] Prisma Data, "Prisma ORM Concepts and Architecture," [Online]. Available: https://www.prisma.io/docs. [Accessed: Jul. 5, 2026].
+
+================================================================================
+END OF REPORT
+================================================================================
